@@ -1,332 +1,172 @@
-import os
-
-import matplotlib.pyplot as plt
-
-import keras.backend as K
+from keras.models import Sequential
+from keras.layers import Reshape, LeakyReLU
+from keras.layers.core import Activation
+from keras.layers.normalization import BatchNormalization
+from keras.layers.convolutional import Conv2D, Conv2DTranspose
+from keras.layers.core import Flatten, Dense
+from keras.optimizers import Adam
 from keras.datasets import mnist
-from keras.layers import *
-from keras.models import *
-from keras.optimizers import *
-from keras.initializers import *
-from keras.callbacks import *
-from keras.utils.generic_utils import Progbar
+from keras.initializers import TruncatedNormal
+from keras import backend as K
+import numpy as np
+from PIL import Image
+import argparse
+import math
+import json
+import cv2
+import scipy.misc
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-RND = 777
+def wasserstein_loss(y_true, y_pred):
+    return K.mean(y_true*y_pred)
 
-RUN = 'F'
-OUT_DIR = 'out/' + RUN
-TENSORBOARD_DIR = './tensorboard/wgans/' + RUN
+def generator_model():
+    model = Sequential()
+    model.add(Dense(512*4*4, input_shape=(10,), kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(Reshape((4,4,512)))
 
-# GPU # 
-GPU = "1"
+    model.add(Conv2DTranspose(256, (7,7), strides=(2,2), padding="same", kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    
+    model.add(Conv2DTranspose(128, (7,7), strides=(2,2), padding="same", kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
 
-# latent vector size
-Z_SIZE = 100
-
-# number of iterations D is trained for per each G iteration
-D_ITERS = 5
-
-BATCH_SIZE = 100
-ITERATIONS = 25000
-
-np.random.seed(RND)
-
-if not os.path.isdir(OUT_DIR): os.makedirs(OUT_DIR)
-
-# use specific GPU
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = GPU
-
-K.set_image_dim_ordering('tf')
-
-# basically return mean(y_pred),
-# but with ability to inverse it for minimization (when y_true == -1)
-def wasserstein(y_true, y_pred):
-    return K.mean(y_true * y_pred)
-
-def create_D():
-
-    # weights are initlaized from normal distribution with below params
-    weight_init = RandomNormal(mean=0., stddev=0.02)
-
-    input_image = Input(shape=(28, 28, 1), name='input_image')
-
-    x = Conv2D(
-        32, (3, 3),
-        padding='same',
-        name='conv_1',
-        kernel_initializer=weight_init)(input_image)
-    x = LeakyReLU()(x)
-    x = MaxPool2D(pool_size=2)(x)
-    x = Dropout(0.3)(x)
-
-    x = Conv2D(
-        64, (3, 3),
-        padding='same',
-        name='conv_2',
-        kernel_initializer=weight_init)(x)
-    x = MaxPool2D(pool_size=1)(x)
-    x = LeakyReLU()(x)
-    x = Dropout(0.3)(x)
-
-    x = Conv2D(
-        128, (3, 3),
-        padding='same',
-        name='conv_3',
-        kernel_initializer=weight_init)(x)
-    x = MaxPool2D(pool_size=2)(x)
-    x = LeakyReLU()(x)
-    x = Dropout(0.3)(x)
-
-    x = Conv2D(
-        256, (3, 3),
-        padding='same',
-        name='coonv_4',
-        kernel_initializer=weight_init)(x)
-    x = MaxPool2D(pool_size=1)(x)
-    x = LeakyReLU()(x)
-    x = Dropout(0.3)(x)
-
-    features = Flatten()(x)
-
-    output_is_fake = Dense(
-        1, activation='linear', name='output_is_fake')(features)
-
-    output_class = Dense(
-        10, activation='softmax', name='output_class')(features)
-
-    return Model(
-        inputs=[input_image], outputs=[output_is_fake, output_class], name='D')
-
-def create_G(Z_SIZE=Z_SIZE):
-    DICT_LEN = 10
-    EMBEDDING_LEN = Z_SIZE
-
-    # weights are initlaized from normal distribution with below params
-    weight_init = RandomNormal(mean=0., stddev=0.02)
-
-    # class#
-    input_class = Input(shape=(1, ), dtype='int32', name='input_class')
-    # encode class# to the same size as Z to use hadamard multiplication later on
-    e = Embedding(
-        DICT_LEN, EMBEDDING_LEN,
-        embeddings_initializer='glorot_uniform')(input_class)
-    embedded_class = Flatten(name='embedded_class')(e)
-
-    # latent var
-    input_z = Input(shape=(Z_SIZE, ), name='input_z')
-
-    # hadamard product
-    h = multiply([input_z, embedded_class], name='h')
-
-    # cnn part
-    x = Dense(1024)(h)
-    x = LeakyReLU()(x)
-
-    x = Dense(128 * 7 * 7)(x)
-    x = LeakyReLU()(x)
-    x = Reshape((7, 7, 128))(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(256, (5, 5), padding='same', kernel_initializer=weight_init)(x)
-    x = LeakyReLU()(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(128, (5, 5), padding='same', kernel_initializer=weight_init)(x)
-    x = LeakyReLU()(x)
-
-    x = Conv2D(
-        1, (2, 2),
-        padding='same',
-        activation='tanh',
-        name='output_generated_image',
-        kernel_initializer=weight_init)(x)
-
-    return Model(inputs=[input_z, input_class], outputs=x, name='G')
-
-D = create_D()
-
-# # remember D dropout rates
-# for l in D.layers:
-#     if l.name.startswith('dropout'):
-#         l._rate = l.rate
-
-D.compile(
-    optimizer=RMSprop(lr=0.00005),
-    loss=[wasserstein, 'sparse_categorical_crossentropy'])
-
-input_z = Input(shape=(Z_SIZE, ), name='input_z_')
-input_class = Input(shape=(1, ),name='input_class_', dtype='int32')
-
-G = create_G()
-
-# create combined D(G) model
-output_is_fake, output_class = D(G(inputs=[input_z, input_class]))
-DG = Model(inputs=[input_z, input_class], outputs=[output_is_fake, output_class])
-DG.get_layer('D').trainable = False # freeze D in generator training faze
-
-DG.compile(
-    optimizer=RMSprop(lr=0.00005),
-    loss=[wasserstein, 'sparse_categorical_crossentropy']
-)
-
-# load mnist data
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
-
-# use all available 70k samples
-X_train = np.concatenate((X_train, X_test))
-y_train = np.concatenate((y_train, y_test))
-
-# convert to -1..1 range, reshape to (sample_i, 28, 28, 1)
-X_train = (X_train.astype(np.float32) - 127.5) / 127.5
-X_train = np.expand_dims(X_train, axis=3)
+    model.add(Conv2DTranspose(64, (7,7), strides=(2,2), padding="same", kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    
+    model.add(Conv2DTranspose(3, (7,7), strides=(2,2), padding="same", kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(Activation('tanh'))
+    
+    return model
 
 
-# save 10x10 sample of generated images
-samples_zz = np.random.normal(0., 1., (100, Z_SIZE))
-def generate_samples(n=0, save=True):
+def discriminator_model():
+    model = Sequential()
+    model.add(Conv2D(64, (7, 7),strides=(2,2),padding='same',input_shape=(64, 64, 3), kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation(LeakyReLU(0.2)))
 
-    generated_classes = np.array(list(range(0, 10)) * 10)
-    generated_images = G.predict([samples_zz, generated_classes.reshape(-1, 1)])
+    model.add(Conv2D(128, (7, 7), padding="same", strides=(2,2), kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation(LeakyReLU(0.2)))
 
-    rr = []
-    for c in range(10):
-        rr.append(
-            np.concatenate(generated_images[c * 10:(1 + c) * 10]).reshape(
-                280, 28))
-    img = np.hstack(rr)
+    model.add(Conv2D(256, (7, 7), padding="same", strides=(2,2), kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation(LeakyReLU(0.2)))
 
-    if save:
-        plt.imsave(OUT_DIR + '/samples_%07d.png' % n, img, cmap=plt.cm.gray)
+    model.add(Conv2D(512, (7, 7), padding="same", strides=(2,2), kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(BatchNormalization())
+    model.add(Activation(LeakyReLU(0.2)))
 
-    return img
+    model.add(Flatten())
+    model.add(Dense(1, kernel_initializer=TruncatedNormal(mean=0, stddev=0.02), bias_initializer='zeros'))
+    model.add(Activation('sigmoid'))
+    return model
 
-# write tensorboard summaries
-sw = tf.summary.FileWriter(TENSORBOARD_DIR)
-def update_tb_summary(step, sample_images=True, save_image_files=True):
 
-    s = tf.Summary()
+def generator_containing_discriminator(g, d):
+    model = Sequential()
+    model.add(g)
+    d.trainable = False
+    model.add(d)
+    return model
 
-    # losses as is
-    for names, vals in zip((('D_real_is_fake', 'D_real_class'),
-                            ('D_fake_is_fake', 'D_fake_class'), ('DG_is_fake',
-                                                                 'DG_class')),
-                           (D_true_losses, D_fake_losses, DG_losses)):
 
-        v = s.value.add()
-        v.simple_value = vals[-1][1]
-        v.tag = names[0]
+def combine_images(generated_images):
+    num = generated_images.shape[0]
+    width = int(math.sqrt(num))
+    height = int(math.ceil(float(num)/width))
+    shape = generated_images.shape[1:]
+    image = np.zeros((height*shape[0], width*shape[1], 3),
+                     dtype=generated_images.dtype)
+    for index, img in enumerate(generated_images):
+        i = int(index/width)
+        j = index % width
+        image[i*shape[0]:(i+1)*shape[0], j*shape[1]:(j+1)*shape[1]] = \
+            img[:, :, :]
+    return image
 
-        v = s.value.add()
-        v.simple_value = vals[-1][2]
-        v.tag = names[1]
+def load_images():
+    # Loading JSON Config
+    print "----- Loading Config -----"
+    data = json.load(open("processed.json", "r"))
 
-    # D loss: -1*D_true_is_fake - D_fake_is_fake
-    v = s.value.add()
-    v.simple_value = -D_true_losses[-1][1] - D_fake_losses[-1][1]
-    v.tag = 'D loss (-1*D_real_is_fake - D_fake_is_fake)'
 
-    # generated image
-    if sample_images:
-        img = generate_samples(step, save=save_image_files)
-        s.MergeFromString(tf.Session().run(
-            tf.summary.image('samples_%07d' % step,
-                             img.reshape([1, img.shape[0], img.shape[1], 1]))))
+    # Loading Images
+    print "----- Loading Images -----"
+    images = None
+    for emoji in data:
+        img = scipy.misc.imread(emoji["location"]).astype(np.float32)
+        # img = cv2.normalize(img, alpha=-1, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+        img = img / 127.5 - 127.5
+        if images is None:
+            images = np.array([img])
+        else:
+            images = np.vstack((images, [img]))
 
-    sw.add_summary(s, step)
-    sw.flush()
+    return images
 
-# fake = 1
-# real = -1
 
-progress_bar = Progbar(target=ITERATIONS)
-
-DG_losses = []
-D_true_losses = []
-D_fake_losses = []
-
-for it in range(ITERATIONS):
-
-    if len(D_true_losses) > 0:
-        progress_bar.update(
-            it,
-            values=[
-                    ('D_real_is_fake', np.mean(D_true_losses[-5:], axis=0)[1]),
-                    ('D_real_class', np.mean(D_true_losses[-5:], axis=0)[2]),
-                    ('D_fake_is_fake', np.mean(D_fake_losses[-5:], axis=0)[1]),
-                    ('D_fake_class', np.mean(D_fake_losses[-5:], axis=0)[2]),
-                    ('D(G)_is_fake', np.mean(DG_losses[-5:],axis=0)[1]),
-                    ('D(G)_class', np.mean(DG_losses[-5:],axis=0)[2])
-            ]
-        )
+def train(images):
+    BATCH_SIZE = 16
+    NOISE_SIZE = 10
+    # X_train = X_train.reshape((X_train.shape, 1) + X_train.shape[1:])
+    d = discriminator_model()
+    g_optim = Adam(lr=0.00002, beta_1=0.25)
+    d.trainable=True
+    d.compile(loss="binary_crossentropy", optimizer=g_optim)
+    g = generator_model()
+    d.trainable=False
+    d_on_g = generator_containing_discriminator(g, d)
+    d_on_g.compile(loss="binary_crossentropy", optimizer=g_optim)
+    
+    for epoch in range(1000000):
         
-    else:
-        progress_bar.update(it)
+        list_disc_real_loss = []
+        list_disc_fake_loss = []
+        # Train Discriminator
+        for index in range(int(82/BATCH_SIZE)):
+            d.trainable = True
+            for l in d.layers:
+                l.trainable = True
+            noise = np.random.uniform(-1, 1,  size=(BATCH_SIZE,NOISE_SIZE))
+            p = np.random.permutation(BATCH_SIZE)
+            image_batch = images[p]
+            noise_batch = g.predict(noise)
+            disc_real_loss = d.train_on_batch(image_batch, np.ones(BATCH_SIZE))
+            disc_fake_loss = d.train_on_batch(noise_batch, np.zeros(BATCH_SIZE))
+            list_disc_real_loss.append(disc_real_loss)
 
-    # 1: train D on real+generated images
+            # Train Generator
+            d.trainable = False
+            for l in d.layers:
+                l.trainable = False
+            noise = np.random.uniform(-1, 1,  size=(BATCH_SIZE,NOISE_SIZE))
+            gen_fake_loss = d_on_g.train_on_batch(noise, np.ones(BATCH_SIZE))
 
-    if (it % 1000) < 25 or it % 500 == 0: # 25 times in 1000, every 500th
-        d_iters = 100
-    else:
-        d_iters = D_ITERS
+        # Print Progress
+        print "Epoch {:d}".format(epoch)
+        print "Disc_Real_Loss :", np.mean(list_disc_real_loss), ", Gen_Loss :", gen_fake_loss
 
-    for d_it in range(d_iters):
+        if epoch % 20 == 0:
+            img = g.predict(np.random.uniform(low=-1, high=1, size=(1,10)))
+            print img
+            print img.shape
+            location = "./samples/dcgan"
+            scipy.misc.imsave(location+"/{}_sample.jpg".format(epoch),(img[0]+1.)*2.)
 
-        # unfreeze D
-        D.trainable = True
-        for l in D.layers: l.trainable = True
-            
-        # # restore D dropout rates
-        # for l in D.layers:
-        #     if l.name.startswith('dropout'):
-        #         l.rate = l._rate
+discriminator = discriminator_model()
+print discriminator.summary()
 
-        # clip D weights
+generator = generator_model()
+print generator.summary()
 
-        for l in D.layers:
-            weights = l.get_weights()
-            weights = [np.clip(w, -0.01, 0.01) for w in weights]
-            l.set_weights(weights)
+images = load_images()
 
-        # 1.1: maximize D output on reals === minimize -1*(D(real))
-
-        # draw random samples from real images
-        index = np.random.choice(len(X_train), BATCH_SIZE, replace=False)
-        real_images = X_train[index]
-        real_images_classes = y_train[index]
-
-        D_loss = D.train_on_batch(real_images, [-np.ones(BATCH_SIZE), real_images_classes])
-        D_true_losses.append(D_loss)
-
-        # 1.2: minimize D output on fakes 
-
-        zz = np.random.normal(0., 1., (BATCH_SIZE, Z_SIZE))
-        generated_classes = np.random.randint(0, 10, BATCH_SIZE)
-        generated_images = G.predict([zz, generated_classes.reshape(-1, 1)])
-
-        D_loss = D.train_on_batch(generated_images, [np.ones(BATCH_SIZE), generated_classes])
-        D_fake_losses.append(D_loss)
-
-    # 2: train D(G) (D is frozen)
-    # minimize D output while supplying it with fakes, telling it that they are reals (-1)
-
-    # freeze D
-    D.trainable = False
-    for l in D.layers: l.trainable = False
-        
-    # # disable D dropout layers
-    # for l in D.layers:
-    #     if l.name.startswith('dropout'):
-    #         l.rate = 0.
-
-    zz = np.random.normal(0., 1., (BATCH_SIZE, Z_SIZE)) 
-    generated_classes = np.random.randint(0, 10, BATCH_SIZE)
-
-    DG_loss = DG.train_on_batch(
-        [zz, generated_classes.reshape((-1, 1))],
-        [-np.ones(BATCH_SIZE), generated_classes])
-
-    DG_losses.append(DG_loss)
-
-    if it % 10 == 0:
-        update_tb_summary(it, sample_images=(it % 10 == 0), save_image_files=True)
+train(images=images)
