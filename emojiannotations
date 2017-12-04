@@ -1,0 +1,330 @@
+[
+    {
+        "location": "./images/jpg/1f600.jpg", 
+        "annotation": "grinning face"
+    }, 
+    {
+        "location": "./images/jpg/1f601.jpg", 
+        "annotation": "grinning face with smiling eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f602.jpg", 
+        "annotation": "face with tears of joy"
+    }, 
+    {
+        "location": "./images/jpg/1f603.jpg", 
+        "annotation": "smiling face with open mouth"
+    }, 
+    {
+        "location": "./images/jpg/1f604.jpg", 
+        "annotation": "smiling face with open mouth and smiling eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f605.jpg", 
+        "annotation": "smiling face with open mouth and cold sweat"
+    }, 
+    {
+        "location": "./images/jpg/1f606.jpg", 
+        "annotation": "smiling face with open mouth and tightly-closed eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f607.jpg", 
+        "annotation": "smiling face with halo"
+    }, 
+    {
+        "location": "./images/jpg/1f608.jpg", 
+        "annotation": "smiling face with horns"
+    }, 
+    {
+        "location": "./images/jpg/1f609.jpg", 
+        "annotation": "winking face"
+    }, 
+    {
+        "location": "./images/jpg/1f60a.jpg", 
+        "annotation": "smiling face with smiling eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f60b.jpg", 
+        "annotation": "face savouring delicious food"
+    }, 
+    {
+        "location": "./images/jpg/1f60c.jpg", 
+        "annotation": "relieved face"
+    }, 
+    {
+        "location": "./images/jpg/1f60d.jpg", 
+        "annotation": "smiling face with heart-shaped eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f60e.jpg", 
+        "annotation": "smiling face with sunglasses"
+    }, 
+    {
+        "location": "./images/jpg/1f60f.jpg", 
+        "annotation": "smirking face"
+    }, 
+    {
+        "location": "./images/jpg/1f610.jpg", 
+        "annotation": "neutral face"
+    }, 
+    {
+        "location": "./images/jpg/1f611.jpg", 
+        "annotation": "expressionless face"
+    }, 
+    {
+        "location": "./images/jpg/1f612.jpg", 
+        "annotation": "unamused face"
+    }, 
+    {
+        "location": "./images/jpg/1f613.jpg", 
+        "annotation": "face with cold sweat"
+    }, 
+    {
+        "location": "./images/jpg/1f614.jpg", 
+        "annotation": "pensive face"
+    }, 
+    {
+        "location": "./images/jpg/1f615.jpg", 
+        "annotation": "confused face"
+    }, 
+    {
+        "location": "./images/jpg/1f616.jpg", 
+        "annotation": "confounded face"
+    }, 
+    {
+        "location": "./images/jpg/1f617.jpg", 
+        "annotation": "kissing face"
+    }, 
+    {
+        "location": "./images/jpg/1f618.jpg", 
+        "annotation": "face throwing a kiss"
+    }, 
+    {
+        "location": "./images/jpg/1f619.jpg", 
+        "annotation": "kissing face with smiling eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f61a.jpg", 
+        "annotation": "kissing face with closed eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f61b.jpg", 
+        "annotation": "face with stuck-out tongue"
+    }, 
+    {
+        "location": "./images/jpg/1f61c.jpg", 
+        "annotation": "face with stuck-out tongue and winking eye"
+    }, 
+    {
+        "location": "./images/jpg/1f61d.jpg", 
+        "annotation": "face with stuck-out tongue and tightly-closed eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f61e.jpg", 
+        "annotation": "disappointed face"
+    }, 
+    {
+        "location": "./images/jpg/1f61f.jpg", 
+        "annotation": "worried face"
+    }, 
+    {
+        "location": "./images/jpg/1f620.jpg", 
+        "annotation": "angry face"
+    }, 
+    {
+        "location": "./images/jpg/1f621.jpg", 
+        "annotation": "pouting face"
+    }, 
+    {
+        "location": "./images/jpg/1f622.jpg", 
+        "annotation": "crying face"
+    }, 
+    {
+        "location": "./images/jpg/1f623.jpg", 
+        "annotation": "persevering face"
+    }, 
+    {
+        "location": "./images/jpg/1f624.jpg", 
+        "annotation": "face with look of triumph"
+    }, 
+    {
+        "location": "./images/jpg/1f625.jpg", 
+        "annotation": "disappointed but relieved face"
+    }, 
+    {
+        "location": "./images/jpg/1f626.jpg", 
+        "annotation": "frowning face with open mouth"
+    }, 
+    {
+        "location": "./images/jpg/1f627.jpg", 
+        "annotation": "anguished face"
+    }, 
+    {
+        "location": "./images/jpg/1f628.jpg", 
+        "annotation": "fearful face"
+    }, 
+    {
+        "location": "./images/jpg/1f629.jpg", 
+        "annotation": "weary face"
+    }, 
+    {
+        "location": "./images/jpg/1f62a.jpg", 
+        "annotation": "sleepy face"
+    }, 
+    {
+        "location": "./images/jpg/1f62b.jpg", 
+        "annotation": "tired face"
+    }, 
+    {
+        "location": "./images/jpg/1f62c.jpg", 
+        "annotation": "grimacing face"
+    }, 
+    {
+        "location": "./images/jpg/1f62d.jpg", 
+        "annotation": "loudly crying face"
+    }, 
+    {
+        "location": "./images/jpg/1f62e.jpg", 
+        "annotation": "face with open mouth"
+    }, 
+    {
+        "location": "./images/jpg/1f62f.jpg", 
+        "annotation": "hushed face"
+    }, 
+    {
+        "location": "./images/jpg/1f630.jpg", 
+        "annotation": "face with open mouth and cold sweat"
+    }, 
+    {
+        "location": "./images/jpg/1f631.jpg", 
+        "annotation": "face screaming in fear"
+    }, 
+    {
+        "location": "./images/jpg/1f632.jpg", 
+        "annotation": "astonished face"
+    }, 
+    {
+        "location": "./images/jpg/1f633.jpg", 
+        "annotation": "flushed face"
+    }, 
+    {
+        "location": "./images/jpg/1f634.jpg", 
+        "annotation": "sleeping face"
+    }, 
+    {
+        "location": "./images/jpg/1f635.jpg", 
+        "annotation": "dizzy face"
+    }, 
+    {
+        "location": "./images/jpg/1f636.jpg", 
+        "annotation": "face without mouth"
+    }, 
+    {
+        "location": "./images/jpg/1f637.jpg", 
+        "annotation": "face with medical mask"
+    }, 
+    {
+        "location": "./images/jpg/1f641.jpg", 
+        "annotation": "slightly frowning face"
+    }, 
+    {
+        "location": "./images/jpg/1f642.jpg", 
+        "annotation": "slightly smiling face"
+    }, 
+    {
+        "location": "./images/jpg/1f643.jpg", 
+        "annotation": "upside-down face"
+    }, 
+    {
+        "location": "./images/jpg/1f644.jpg", 
+        "annotation": "face with rolling eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f910.jpg", 
+        "annotation": "zipper-mouth face"
+    }, 
+    {
+        "location": "./images/jpg/1f911.jpg", 
+        "annotation": "money-mouth face"
+    }, 
+    {
+        "location": "./images/jpg/1f912.jpg", 
+        "annotation": "face with thermometer"
+    }, 
+    {
+        "location": "./images/jpg/1f913.jpg", 
+        "annotation": "nerd face"
+    }, 
+    {
+        "location": "./images/jpg/1f914.jpg", 
+        "annotation": "thinking face"
+    }, 
+    {
+        "location": "./images/jpg/1f915.jpg", 
+        "annotation": "face with head-bandage"
+    }, 
+    {
+        "location": "./images/jpg/1f917.jpg", 
+        "annotation": "hugging face"
+    }, 
+    {
+        "location": "./images/jpg/1f920.jpg", 
+        "annotation": "face with cowboy hat"
+    }, 
+    {
+        "location": "./images/jpg/1f922.jpg", 
+        "annotation": "nauseated face"
+    }, 
+    {
+        "location": "./images/jpg/1f923.jpg", 
+        "annotation": "rolling on the floor laughing"
+    }, 
+    {
+        "location": "./images/jpg/1f924.jpg", 
+        "annotation": "drooling face"
+    }, 
+    {
+        "location": "./images/jpg/1f925.jpg", 
+        "annotation": "lying face"
+    }, 
+    {
+        "location": "./images/jpg/1f927.jpg", 
+        "annotation": "sneezing face"
+    }, 
+    {
+        "location": "./images/jpg/1f928.jpg", 
+        "annotation": "face with one eyebrow raised"
+    }, 
+    {
+        "location": "./images/jpg/1f929.jpg", 
+        "annotation": "grinning face with star eyes"
+    }, 
+    {
+        "location": "./images/jpg/1f92a.jpg", 
+        "annotation": "grinning face with one large and one small eye"
+    }, 
+    {
+        "location": "./images/jpg/1f92b.jpg", 
+        "annotation": "face with finger covering closed lips"
+    }, 
+    {
+        "location": "./images/jpg/1f92c.jpg", 
+        "annotation": "serious face with symbols covering mouth"
+    }, 
+    {
+        "location": "./images/jpg/1f92d.jpg", 
+        "annotation": "smiling face with smiling eyes and hand covering mouth"
+    }, 
+    {
+        "location": "./images/jpg/1f92e.jpg", 
+        "annotation": "face with open mouth vomiting"
+    }, 
+    {
+        "location": "./images/jpg/1f92f.jpg", 
+        "annotation": "shocked face with exploding head"
+    }, 
+    {
+        "location": "./images/jpg/263a-fe0f.jpg", 
+        "annotation": "white smiling face"
+    }
+]
