@@ -1,31 +1,31 @@
 [
     {
         "location": "./images/jpg/1f600.jpg", 
-        "annotation": "grinning face"
+        "annotation": "grinning face, smile with teeth, happy"
     }, 
     {
         "location": "./images/jpg/1f601.jpg", 
-        "annotation": "grinning face with smiling eyes"
+        "annotation": "grinning face with smiling eyes, squinted eyes, smile with teeth, extra happy"
     }, 
     {
         "location": "./images/jpg/1f602.jpg", 
-        "annotation": "face with tears of joy"
+        "annotation": "face with tears of joy, laughter, crying from laughing"
     }, 
     {
         "location": "./images/jpg/1f603.jpg", 
-        "annotation": "smiling face with open mouth"
+        "annotation": "smiling face with open mouth, happy, "
     }, 
     {
         "location": "./images/jpg/1f604.jpg", 
-        "annotation": "smiling face with open mouth and smiling eyes"
+        "annotation": "smiling face with open mouth and smiling eyes, squinted eyes, cute smile"
     }, 
     {
         "location": "./images/jpg/1f605.jpg", 
-        "annotation": "smiling face with open mouth and cold sweat"
+        "annotation": "smiling face with open mouth and cold sweat, squinted eyes, sweating from laughing"
     }, 
     {
         "location": "./images/jpg/1f606.jpg", 
-        "annotation": "smiling face with open mouth and tightly-closed eyes"
+        "annotation": "smiling face with open mouth and tightly-closed eyes, "
     }, 
     {
         "location": "./images/jpg/1f607.jpg", 
