@@ -229,7 +229,7 @@ g_optim = tf.train.AdamOptimizer(0.002, beta1=0.6).minimize(g_loss, var_list=g_v
 saver = tf.train.Saver(t_vars)
 
 # Lets do this shit
-with tf.Session() as sess
+with tf.Session() as sess:
 	scalar_writer = tf.summary.FileWriter('./Graph', sess.graph)
 
 	sess.run(tf.global_variables_initializer())
