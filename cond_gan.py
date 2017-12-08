@@ -4,9 +4,12 @@ import os
 import json
 import cv2
 import scipy.misc
+
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 MODEL_PATH = "./model/condgan/"
-f1, f2, f3, f4, f5 = 3, 128, 256, 512, 1024
+
+f1, f2, f3, f4, f5 = 3, 64, 128, 256, 512
 s1, s2, s3, s4, s5 = 64, 32, 16, 8, 4
 
 images = np.load("image_vectors.npy")[()]
@@ -20,6 +23,7 @@ BATCH_SIZE = 16
 NOISE_SIZE = 100
 n_batches = int(len(image_keys)/BATCH_SIZE)
 
+# Generating Averaged Word Vectors
 def sample_embeddings(keys):
 	embeddings = []
 	for i in range(0,len(keys),2):
@@ -72,7 +76,6 @@ def dense(x, shape, name):
 		biases = bias([shape[-1]], name="bias")
 		return tf.matmul(x,weights) + biases
 
-
 def batch_norm(inputs, decay=0.9, epsilon=0.00001, scale=True, isTrain=True, name="batch_norm"):
 	return tf.contrib.layers.batch_norm(inputs, decay=decay, scale=scale, epsilon=epsilon, updates_collections=None, is_training=isTrain, scope=name)
 
@@ -85,22 +88,22 @@ def discriminator(images, word_embeddings, batch_size, reuse):
 		output = batch_norm(output, isTrain=True, name="d_batch_norm_1")
 		output = lrelu(output)
 
-		# 32x32x8
+		# 32x32x64
 		output = conv2d(output, features=[f2, f3], name="d_conv_layer_2")
 		output = batch_norm(output, isTrain=True, name="d_batch_norm_2")
 		output = lrelu(output)
 
-		# 16x16x16
+		# 16x16x128
 		output = conv2d(output, features=[f3, f4], name="d_conv_layer_3")
 		output = batch_norm(output, isTrain=True, name="d_batch_norm_3")
 		output = lrelu(output)
 
-		# 8x8x32
+		# 8x8x256
 		output = conv2d(output, features=[f4, f5], name="d_conv_layer_4")
 		output = batch_norm(output, isTrain=True, name="d_batch_norm_4")
 		output = lrelu(output)
 
-		# 4x4x64
+		# 4x4x512
 		reduced_embeddings = dense(word_embeddings, shape=[300,100], name="d_dense_1")
 		reduced_embeddings = lrelu(batch_norm(reduced_embeddings, isTrain=True, name="d_batch_norm_5"))
 
@@ -124,30 +127,31 @@ def sampler(z, word_embeddings, batch_size):
 		
 		reduced_embeddings = dense(word_embeddings, shape=[300, 100], name="g_embeddings_reduce")
 
-		# 4x4x64
 		output = tf.concat([z, reduced_embeddings], 1)
 		output = dense(output, shape=[NOISE_SIZE + 100, s5*s5*f5], name="g_dense_1")
 		output = batch_norm(output, isTrain=False, name="g_batch_norm_0")
 		output = tf.nn.relu(output)
 		output = tf.reshape(output, [-1, s5, s5, f5])
 
+		# 4x4x512
 		output = deconv2d(output, features=[f4, f5], output_shape=[batch_size,s4,s4,f4], name="g_deconv_layer_1")
 		output = batch_norm(output, isTrain=False, name="g_batch_norm_1")
 		output = tf.nn.relu(output)
 
-		# 8x8x32
+		# 8x8x256
 		output = deconv2d(output, features=[f3, f4], output_shape=[batch_size,s3,s3,f3], name="g_deconv_layer_2")
 		output = batch_norm(output, isTrain=False, name="g_batch_norm_2")
 		output = tf.nn.relu(output)
 
-		# 16x16x16
+		# 16x16x128
 		output = deconv2d(output, features=[f2, f3], output_shape=[batch_size,s2,s2,f2], name="g_deconv_layer_3")
 		output = batch_norm(output, isTrain=False, name="g_batch_norm_3")
 		output = tf.nn.relu(output)
 
-		# 32x32x8
+		# 32x32x64
 		output = deconv2d(output, features=[f1, f2], output_shape=[batch_size,s1,s1,f1], name="g_deconv_layer_4")
 		output = tf.nn.tanh(output)
+		
 		# 64x64x3
 		return output
 
@@ -155,30 +159,31 @@ def generator(z, word_embeddings, batch_size):
 	with tf.variable_scope("generator") as scope:
 		reduced_embeddings = dense(word_embeddings, shape=[300, 100], name="g_embeddings_reduce")
 
-		# 4x4x64
 		output = tf.concat([z, reduced_embeddings], 1)
 		output = dense(output, shape=[NOISE_SIZE + 100, s5*s5*f5], name="g_dense_1")
 		output = batch_norm(output, isTrain=False, name="g_batch_norm_0")
 		output = tf.nn.relu(output)
 		output = tf.reshape(output, [-1, s5, s5, f5])
 
+		# 4x4x512
 		output = deconv2d(output, features=[f4, f5], output_shape=[batch_size,s4,s4,f4], name="g_deconv_layer_1")
 		output = batch_norm(output, isTrain=True, name="g_batch_norm_1")
 		output = tf.nn.relu(output)
 
-		# 8x8x32
+		# 8x8x256
 		output = deconv2d(output, features=[f3, f4], output_shape=[batch_size,s3,s3,f3], name="g_deconv_layer_2")
 		output = batch_norm(output, isTrain=True, name="g_batch_norm_2")
 		output = tf.nn.relu(output)
 
-		# 16x16x16
+		# 16x16x128
 		output = deconv2d(output, features=[f2, f3], output_shape=[batch_size,s2,s2,f2], name="g_deconv_layer_3")
 		output = batch_norm(output, isTrain=True, name="g_batch_norm_3")
 		output = tf.nn.relu(output)
 
-		# 32x32x8
+		# 32x32x64
 		output = deconv2d(output, features=[f1, f2], output_shape=[batch_size,s1,s1,f1], name="g_deconv_layer_4")
 		output = tf.nn.tanh(output)
+		
 		# 64x64x3
 		return output
 
@@ -188,12 +193,14 @@ fake_word_embeddings = tf.placeholder(tf.float32, shape=[None, 300], name="fake_
 real_word_embeddings = tf.placeholder(tf.float32, shape=[None, 300], name="real_word_embeddings")
 real_images = tf.placeholder(tf.float32, shape=[None, s1, s1, f1], name="real_input")
 
+# Logits
 fake_images = generator(z, real_word_embeddings, batch_size=BATCH_SIZE)
 real_img_real_label_disc_logits, real_disc_real = discriminator(real_images, real_word_embeddings, batch_size=BATCH_SIZE, reuse=False)
 real_img_fake_label_disc_logits, real_disc_fake = discriminator(real_images, fake_word_embeddings, batch_size=BATCH_SIZE, reuse=True)
 sample = sampler(z, real_word_embeddings, batch_size=BATCH_SIZE)
 fake_disc_logits, fake_disc = discriminator(fake_images, real_word_embeddings, batch_size=BATCH_SIZE, reuse=True)
 
+# Losses
 g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=fake_disc_logits, labels=tf.zeros_like(fake_disc)+tf.random_uniform(minval=0,maxval=0.3,shape=tf.shape(fake_disc))))
 d_loss_real_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=real_img_real_label_disc_logits, labels=tf.zeros_like(real_disc_real)+tf.random_uniform(minval=0,maxval=0.3,shape=tf.shape(real_disc_real))))
 d_loss_real_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=real_img_fake_label_disc_logits, labels=tf.ones_like(real_disc_fake)-tf.random_uniform(minval=0,maxval=0.3,shape=tf.shape(real_disc_fake))))
@@ -222,11 +229,12 @@ g_optim = tf.train.AdamOptimizer(0.002, beta1=0.6).minimize(g_loss, var_list=g_v
 saver = tf.train.Saver(t_vars)
 
 # Lets do this shit
-with tf.Session() as sess:
-
+with tf.Session() as sess
 	scalar_writer = tf.summary.FileWriter('./Graph', sess.graph)
 
 	sess.run(tf.global_variables_initializer())
+
+	# Load latest checkpoint
 	if tf.train.latest_checkpoint(MODEL_PATH):
 		saver.restore(sess, tf.train.latest_checkpoint(MODEL_PATH))
 
@@ -246,7 +254,9 @@ with tf.Session() as sess:
 
 			dl.append(DLOSS)
 			gl.append(GLOSS)
+		print "EPOCH ", epoch, np.mean(dl), np.mean(gl)
 
+		# Model Epoch Summary
 		if epoch % 500 != 0:
 			np.random.shuffle(image_keys)
 			batch_noise = np.random.uniform(-1,1,size=(BATCH_SIZE, NOISE_SIZE)).astype(np.float32)
@@ -254,7 +264,7 @@ with tf.Session() as sess:
 			_, _, _, _, _, summary = sess.run([g_loss, d_loss, d_loss_real_real, d_loss_real_fake, d_loss_fake,merged_scalar], feed_dict={ real_images : batch_images, real_word_embeddings : batch_true_labels, fake_word_embeddings : batch_fake_labels, z : batch_noise})
 			scalar_writer.add_summary(summary, epoch)
 
-		print "EPOCH ", epoch, np.mean(dl), np.mean(gl)
+		# Generating Samples using Combined Vectors of two different emotions
 		if epoch % 100 == 0:
 			sample_z = np.random.uniform(-1,1,size=(BATCH_SIZE, NOISE_SIZE)).astype(np.float32)
 			shuffle_descs = list(master_descs)
@@ -269,8 +279,8 @@ with tf.Session() as sess:
 			for j in range(BATCH_SIZE):
 				scipy.misc.imsave("./samples/condgan/{}/{}.png".format(epoch, random_labels[j*2]+"_"+random_labels[j*2+1]), (fake_image[j] + 1.)/2.)
 
+		# Model Checkpoint
 		if epoch % 500 == 0:
-
 			# Summary with Images
 			np.random.shuffle(image_keys)
 			batch_noise = np.random.uniform(-1,1,size=(BATCH_SIZE, NOISE_SIZE)).astype(np.float32)
